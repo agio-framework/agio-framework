@@ -3,7 +3,7 @@
     "version": "1.0.0",
     "description": "Core sources of Agio Framework for NodeJS",
     "author": "Tales Luna <tales.ferreira.luna@gmail.com>",
-    "private": true,
+    "private": false,
     "repository": {
         "type": "git",
         "url": "https://github.com/agio-framework/agio-framework"

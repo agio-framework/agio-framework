@@ -2,7 +2,7 @@
     "name": "@agio/framework",
     "version": "1.0.0",
     "description": "Core sources of Agio Framework for NodeJS",
-    "private": true,
+    "private": false,
     "repository": {
         "type": "git",
         "url": "https://github.com/agio-framework/agio-framework"
