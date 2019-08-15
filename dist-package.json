@@ -5,7 +5,7 @@
     "private": true,
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/agio-framework/agio-framework"
     },
     "dependencies": {
         "@types/express": "4.16.1",
