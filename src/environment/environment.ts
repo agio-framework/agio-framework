@@ -1,11 +1,13 @@
 import { Environment } from '@agio/framework/environment';
 import { join } from 'path';
 
-declare const global: NodeJS.Global & { environment: Environment }
+// Define environment filename
+const ENV_FILENAME = `${process.env.AGIO_ENV ? `${process.env.AGIO_ENV}.` : ''}environment.json`;
 
-const ENV_NAME = `${process.env.AGIO_ENV ? `${process.env.AGIO_ENV}.` : ''}environment.json`;
-const ENV_DIRECTORY = `${APP_PATH}/environments/`;
+// Define environment full path
+const ENV_PATH = join(`${APP_PATH}/environments/`, ENV_FILENAME);
 
-global.environment = global.environment || require(join(ENV_DIRECTORY, ENV_NAME));
+// Require environment JSON file
+global.__agio__.environment = global.__agio__.environment || require(ENV_PATH);
 
-export const { environment } = global;
+export const { environment } = global.__agio__;

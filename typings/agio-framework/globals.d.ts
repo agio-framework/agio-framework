@@ -8,5 +8,8 @@ declare namespace NodeJS {
         models: typeof models;
         APP_PATH: string;
         HTTP_STATUS: typeof HTTP_STATUS;
+        __agio__: {
+            environment?: import('@agio/framework/environment').Environment,
+        },
     }
 }

@@ -6,11 +6,19 @@ import { singleton, autoInjectable, injectable } from 'tsyringe';
 import { ControllerClass } from '@agio/framework/common';
 import { RouterMethods, Request, Response, NextFunction } from '@agio/framework/http';
 
-const coroutineMiddleware = use => (req, res, next) => Promise.resolve(use(req, res, next)).catch(next);
+// Handle middleware in promise, capture exceptions in async methods
+const handleMiddlewares = use => (req, res, next) => Promise.resolve(use(req, res, next)).catch(next);
 
+/**
+ * Controller Decorator: Turn the class into a Agio Controller
+ *
+ * @param prefix Router prefix path
+ */
 export const Controller = (prefix: string = '/') => function(target: ControllerClass) {
 
     target.prefix = prefix;
+
+    // Router generator function, sync routes to express app
     target.router = (app: Application) => {
 
         const expressRouter = ExpressRouter({});
@@ -18,7 +26,7 @@ export const Controller = (prefix: string = '/') => function(target: ControllerC
 
         target.prototype.routes.forEach(route => {
 
-            const handler = coroutineMiddleware((req, res, next) => controller[route.controllerMethod].apply(controller, [req, res, next]));
+            const handler = handleMiddlewares((req, res, next) => controller[route.controllerMethod].apply(controller, [req, res, next]));
             expressRouter[route.method](route.path, route.middlewares, handler);
 
         });
@@ -29,9 +37,10 @@ export const Controller = (prefix: string = '/') => function(target: ControllerC
 
 }
 
-export const Injectable = (options: {auto: boolean} = {auto: true}) => options.auto ? autoInjectable() : injectable();
-export const Singleton = singleton;
 
+/**
+ * Validator Decorator: Turn the class a Joi validator middleware
+ */
 export const Validator = () => function(target: VoidFunction) {
 
     const validations = Object
@@ -51,6 +60,13 @@ export const Validator = () => function(target: VoidFunction) {
 
 }
 
+/**
+ * Router Decorator: Turn class method in middleware by method
+ *
+ * @param method - HTTP method, get, post, put etc...
+ * @param path - the route path
+ * @param middlewares - list of route middlewares
+ */
 export const Router = (method: RouterMethods, path: string |  string[], middlewares: any[] = []) => function(target: ControllerClass, propertyKey?: string) {
 
     if (!target.routes) Object.setPrototypeOf(target, {routes: []})
@@ -62,7 +78,13 @@ export const Router = (method: RouterMethods, path: string |  string[], middlewa
         middlewares: middlewares
             .map(middleware => new middleware())
             .filter(middleware => middleware.use)
-            .map(middleware => coroutineMiddleware((req, res, next) => middleware.use.apply(middleware, [req, res, next])))
+            .map(middleware => handleMiddlewares((req, res, next) => middleware.use.apply(middleware, [req, res, next])))
     });
 
 }
+
+// Injectable Decorator: Add support for dependencie injector
+export const Injectable = (options: {auto: boolean} = {auto: true}) => options.auto ? autoInjectable() : injectable();
+
+// Singleton Decorator: Turns the class singleton
+export const Singleton = singleton;
