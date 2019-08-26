@@ -5,7 +5,15 @@ declare module '@agio/framework/database' {
     export type MongoModel<T>   = import('mongoose').Model<T & import('mongoose').Document>;
     export const MongoDataTypes : typeof import('mongoose').Types;
 
-    type SQLSchemaOptions       = import('sequelize').ModelOptions;
+
+    type Association = import('sequelize').AssociationOptions & { model: string; };
+    interface Associations {
+        hasOne?: Association[];
+        hasMany?: Association[];
+        belongsTo?: Association[];
+        belongsToMany?: Association[];
+    }
+    type SQLSchemaOptions       = import('sequelize').ModelOptions & {associations?: Associations};
     type SQLSchemaDefinition    = import('sequelize').ModelAttributes;
     export type SQLModel<M>     = { new (): M & import('sequelize').Model<M>} & typeof import('sequelize').Model;
     export const SQLDataTypes   : typeof import('sequelize').DataTypes;
