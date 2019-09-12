@@ -1,6 +1,6 @@
 {
     "name": "@agio/framework",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "license": "MIT",
     "description": "Core sources of Agio Framework for NodeJS",
     "author": "Tales Luna <tales.ferreira.luna@gmail.com>",

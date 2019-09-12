@@ -45,7 +45,7 @@ export const Validator = () => function(target: VoidFunction) {
 
     const validations = Object
         .getOwnPropertyNames(target.prototype)
-        .map(key => ({key, schema: target.prototype[key]}))
+        .map(key => ({key, schema: new target()[key]}))
         .filter(validation => validation.schema.isJoi)
     
 
