@@ -29,7 +29,7 @@
         "reflect-metadata": "0.1.13",
         "request": "2.88.0",
         "request-promise": "4.2.4",
-        "sequelize": "5.10.1",
+        "sequelize": "5.15.1",
         "tsyringe": "3.2.0"
     },
     "devDependencies": {
