@@ -14,28 +14,46 @@ export const SQLSchema = (name: string, definition: SQLSchemaDefinition, options
 
     // Schema as fucntion generator
     target.prototype.isAgioModel = true;
-    target.prototype.schema = function() {
-        return (sequelize: Sequelize) => {
 
-            // Schema associations
-            const { associations } = options;
-            delete options.associations;
-    
-            // Create a new sequelize schema
-            const model: any = SQLModel.init(definition, {...options, sequelize, modelName: name });
-            
-            // Populate custom methods
-            const methods = getCustomMethods(target);
-            methods.statics.forEach(method => model[method.name] = method.caller);
-            methods.instance.forEach(method => (model as any).prototype[method.name] = method.caller);
-    
-            model.associate = (models) => {
-                // console.log('>>> Assoc: ', name, models, !!associations);
+    // Generate a sequelize schema
+    target.prototype.schema = (sequelize: Sequelize) => {
+
+        // Create a new sequelize schema
+        const model = sequelize.define(name, definition, { ...options, modelName: name });
+
+        // Define custom methods
+        const methods = getCustomMethods(target);
+        methods.statics.forEach(method => model[method.name] = method.caller);
+        methods.instance.forEach(method => model.prototype[method.name] = method.caller);
+
+        return Object.assign(model, target);
+
+    };
+
+    // Build all associations
+    target.prototype.associate = (model: SQLModel, sequelize: Sequelize) => {
+
+        // Schema associations
+        const { associations } = options;
+        delete options.associations;
+
+        if (associations) {
+
+            for (const method in associations) {
+                for (const assocOptions of associations[method]) {
+
+                    const modelName = assocOptions.model;
+                    delete assocOptions.model;
+
+                    if (sequelize.models[modelName]) {
+                        model[method](sequelize.models[modelName], assocOptions);   
+                    }
+
+                }
             }
-    
-            return Object.assign(model, target);
+
         }
-    }()
+    }
 
 }
 

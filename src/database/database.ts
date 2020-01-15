@@ -116,8 +116,8 @@ export class Database {
         Object
             .keys(sequelize.models)
             .forEach((modelName) => {
-                if ('associate' in sequelize.models[modelName]) {
-                    (sequelize.models[modelName] as any).associate(sequelize.models);
+                if ('associate' in sequelize.models[modelName].prototype) {
+                    sequelize.models[modelName].prototype.associate(sequelize.models[modelName], sequelize);
                 }
             });
 
