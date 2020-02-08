@@ -13,7 +13,9 @@
         "build": "rm -rf dist && tsc && cp -r LICENSE README.md typings package.json dist"
     },
     "dependencies": {
+        "@hapi/joi": "17.1.0",
         "@types/express": "4.16.1",
+        "@types/hapi__joi": "16.0.9",
         "@types/lodash": "4.14.129",
         "@types/mongoose": "5.5.32",
         "@types/node": "^12.0.1",
@@ -22,7 +24,6 @@
         "body-parser": "1.19.0",
         "express": "4.16.4",
         "http-status-codes": "1.3.2",
-        "joi": "14.3.1",
         "lodash": "^4.17.15",
         "mongoose": "5.7.5",
         "morgan": "1.9.1",
@@ -42,9 +43,7 @@
     "typings": "./typings/index.d.ts",
     "types": "./typings/index.d.ts",
     "lint-staged": {
-        "src/**/*.ts": [
-
-        ]
+        "src/**/*.ts": []
     },
     "husky": {
         "hooks": {

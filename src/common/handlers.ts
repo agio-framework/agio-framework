@@ -58,13 +58,14 @@ export const RESPONSE_HANDLER = (req: Request, res: Response, next: NextFunction
         // Parse error to send
         if (error) {
 
-            error.stack = error.stack
-                .split('\n')[1]
+            const stackLine = error.stack.split('\n')[1];
+
+            error.stack = !stackLine ? undefined : stackLine
                 .trim()
-                .match(/\(([^)]+)\)/)[1]
+                .match(/(([^)]+))/)[1]
                 .split(/src|node_modules/)
                 .pop();
-    
+
             error = {
                 name: error.name,
                 message: error.message,

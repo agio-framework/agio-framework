@@ -87,6 +87,24 @@ export const MongoSchema = (name: string, definition: MongoSchemaDefinition, opt
 
 }
 
+
+/**
+ * Define class property as getter for specified model
+ *
+ * @param dbName - The name of synced database
+ * @param modelName - The name of defined model
+ */
+export const Model = (dbName: string, modelName: string) => function (target: VoidFunction, propertyKey: string | symbol) {
+
+    // Create getter for model
+    Object.defineProperty(target, propertyKey, {
+        get: () => models(dbName, modelName),
+        set: () => null,
+    });
+
+}
+
+
 /**
  * Returns the model class methods, statics and instances.
  * 
