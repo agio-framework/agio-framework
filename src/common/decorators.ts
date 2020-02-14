@@ -1,13 +1,16 @@
 import 'reflect-metadata'
 
-import { Application, Router as ExpressRouter } from 'express';
 import { join } from 'path';
+import { Application, Router as ExpressRouter } from 'express';
 import { singleton, autoInjectable, injectable } from 'tsyringe';
+
+import { RouterMethods } from '@agio/framework/http';
 import { ControllerClass } from '@agio/framework/common';
-import { RouterMethods, Request, Response, NextFunction } from '@agio/framework/http';
+
 
 // Handle middleware in promise, capture exceptions in async methods
 const handleMiddlewares = use => (req, res, next) => Promise.resolve(use(req, res, next)).catch(next);
+
 
 /**
  * Controller Decorator: Turn the class into a Agio Controller
@@ -39,28 +42,6 @@ export const Controller = (prefix: string = '/') => function(target: ControllerC
 
 
 /**
- * Validator Decorator: Turn the class a Joi validator middleware
- */
-export const Validator = () => function(target: VoidFunction) {
-
-    const validations = Object
-        .getOwnPropertyNames(target.prototype)
-        .map(key => ({key, schema: new target()[key]}))
-        .filter(validation => validation.schema.isJoi)
-    
-
-    target.prototype.use = (req: Request, res: Response, next: NextFunction) => {
-
-        Promise
-            .all(validations.map(validation => validation.schema.validate(req[validation.key])))
-            .then(() => next())
-            .catch((err: Error) => res.sendResponse(HTTP_STATUS.UNPROCESSABLE_ENTITY, err))
-
-    }
-
-}
-
-/**
  * Router Decorator: Turn class method in middleware by method
  *
  * @param method - HTTP method, get, post, put etc...
@@ -83,8 +64,10 @@ export const Router = (method: RouterMethods, path: string |  string[], middlewa
 
 }
 
+
 // Injectable Decorator: Add support for dependencie injector
 export const Injectable = (options: {auto: boolean} = {auto: true}) => options.auto ? autoInjectable() : injectable();
+
 
 // Singleton Decorator: Turns the class singleton
 export const Singleton = singleton;

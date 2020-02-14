@@ -1,11 +1,15 @@
+type SequelizeModel = typeof import('sequelize').Model;
+
 declare module '@agio/framework/database' {
 
-    type MongoSchemaOptions     = import('mongoose').SchemaOptions;
-    type MongoSchemaDefinition  = import('mongoose').SchemaDefinition;
-    export type MongoModel<T>   = import('mongoose').Model<T & import('mongoose').Document>;
-    export const MongoDataTypes : typeof import('mongoose').Types;
+    // Schema options
+    type SQLSchemaOptions = import('sequelize').ModelOptions & {associations?: Associations};
+    type MongoSchemaOptions = import('mongoose').SchemaOptions;
+    type SQLSchemaDefinition = import('sequelize').ModelAttributes;
+    type MongoSchemaDefinition = import('mongoose').SchemaDefinition;
+    
 
-
+    // SQL associations
     type Association = import('sequelize').AssociationOptions & { model: string; };
     interface Associations {
         hasOne?: Association[];
@@ -13,14 +17,23 @@ declare module '@agio/framework/database' {
         belongsTo?: Association[];
         belongsToMany?: Association[];
     }
-    type SQLSchemaOptions       = import('sequelize').ModelOptions & {associations?: Associations};
-    type SQLSchemaDefinition    = import('sequelize').ModelAttributes;
-    export type SQLModel<M>     = { new (): M & import('sequelize').Model<M>} & typeof import('sequelize').Model;
-    export const SQLDataTypes   : typeof import('sequelize').DataTypes;
 
 
+    // Mongodb model and types
+    export type MongoModel<T> = import('mongoose').Model<T & import('mongoose').Document>;
+    export const MongoDataTypes: typeof import('mongoose').Types;
+
+
+    // SQL model and types
+    export type SQLModel<T> = SequelizeModel & { new (): T & import('sequelize').Model<T>; }
+    export const SQLDataTypes: typeof import('sequelize').DataTypes;
+
+
+    // Decorators
+    export const Model: (dbName: string, modelName: string) => PropertyDecorator;
     export const SQLSchema: (name: string, definition: SQLSchemaDefinition, options?: SQLSchemaOptions) => ClassDecorator;
     export const MongoSchema: (name: string, definition: MongoSchemaDefinition, options?: MongoSchemaOptions) => ClassDecorator;
+
 
     class Database {
         constructor(
@@ -29,4 +42,5 @@ declare module '@agio/framework/database' {
             options?: {[key: string]: any}
         );
     }
+
 }

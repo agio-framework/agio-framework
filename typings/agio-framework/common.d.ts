@@ -4,7 +4,6 @@ declare module '@agio/framework/common' {
 
     export const Router: (method: import('@agio/framework/http').RouterMethods, path: string |  string[], middlewares: any[]) => Function; 
     export const HANDLERS: {[key: string]: Handler}; 
-    export const Validator: () => ClassDecorator;
     export const Singleton: () => ClassDecorator;
     export const Controller: (prefix?: string) => ClassDecorator;
     export const Injectable: (options?: {auto: boolean}) => ClassDecorator;
