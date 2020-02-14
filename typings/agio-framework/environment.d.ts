@@ -24,6 +24,7 @@ declare module '@agio/framework/environment' {
         databases: {
             [key: string]: string | {
                 uri: string;
+                seeds?: { [key: string]: string }
                 options: { [key: string]: any }
             };
         }

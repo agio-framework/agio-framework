@@ -34,12 +34,25 @@ declare module '@agio/framework/database' {
     export const SQLSchema: (name: string, definition: SQLSchemaDefinition, options?: SQLSchemaOptions) => ClassDecorator;
     export const MongoSchema: (name: string, definition: MongoSchemaDefinition, options?: MongoSchemaOptions) => ClassDecorator;
 
+    interface DBConfig {
+        
+        uri: string;
+
+        dbName: string;
+
+        seeds?: {
+            [key: string]: string;
+        };
+
+        options?: {
+            [key: string]: any;
+        };
+
+    }
 
     class Database {
         constructor(
-            uri: string,
-            dbName: string,
-            options?: {[key: string]: any}
+            dbConfig: DBConfig
         );
     }
 

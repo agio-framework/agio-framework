@@ -117,8 +117,14 @@ export class App {
 
             const uri: string = typeof database === 'string' ? database : database.uri;
             const options: {} = typeof database === 'string' ? {} : database.options;
+            const seeds: {} = typeof database === 'string' ? undefined : database.seeds;
 
-            new Database(uri, dbName, options);
+            new Database({
+                uri,
+                seeds,
+                dbName,
+                options,
+            });
 
         });
 

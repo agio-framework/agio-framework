@@ -1,6 +1,9 @@
-import { existsSync, readdirSync } from 'fs';
+import { join } from 'path';
 import { Mongoose } from 'mongoose';
 import { Sequelize } from 'sequelize';
+import { existsSync, readdirSync, readFileSync } from 'fs';
+
+import { DBConfig, SQLModel, MongoModel } from '@agio/framework/database';
 
 // Global synced database list
 const __dbs__ = {};
@@ -12,6 +15,11 @@ global.models = (dbName: string, modelName) => __dbs__[dbName] ? __dbs__[dbName]
 Mongoose.prototype.Promise = global.Promise;
 (Sequelize as any).Promise = global.Promise;
 
+// Simbolic typing of models list
+type ModelsList = {
+    [key: string]: SQLModel<any> & MongoModel<any>;
+}
+
 
 /**
  * Create and push database
@@ -21,28 +29,11 @@ export class Database {
     // List of the database synced models
     private models: any[] = [];
 
-    // Path of database model files
-    private modelsPath: string;
 
-    // Strategy method for connection
-    private connectionStrategy: () => Promise<Sequelize | Mongoose>;
-
-    constructor(
-        private uri: string,
-        private dbName: string,
-        private options?: {[key: string]: any}
-    ) {
-
-        // Define the models path
-        this.modelsPath = `${APP_PATH}/models/${this.dbName}`;
-
-        // Define connection strategy method
-        this.connectionStrategy = this.uri.includes('mongodb') ? this.mongooseStrategy : this.sequelizeStrategy;
-
+    constructor(private config: DBConfig) {
         this.connect();
-
     }
-    
+
 
     /**
      * Sync models and connect to database.
@@ -68,6 +59,10 @@ export class Database {
         // If models found, connect to database
         if (this.models.length) {
             this.connectionStrategy()
+                .then((connection) => {
+                    this.seed(connection.models as ModelsList);
+                    return connection;
+                })
                 .catch(err => console.error(`
                     Can't connect to database ${this.dbName} because: ${err ? err.message : 'unknown error.'}`,
                 ));
@@ -96,7 +91,7 @@ export class Database {
         __dbs__[this.dbName] = mongoose.models;
 
         // Return connection
-        return mongoose.connect(this.uri, { useNewUrlParser: true, ...this.options })
+        return mongoose.connect(this.uri, { useNewUrlParser: true, ...this.options });
 
     }
 
@@ -128,5 +123,120 @@ export class Database {
         return sequelize.sync() as Promise<Sequelize>;
 
     }
+
+
+    /**
+     * 
+     * @param models
+     */
+    private async seed(models: ModelsList) {
+
+        // Noone seeds defined
+        if (!this.seeds) return;
+
+       // Seeds
+       for (const modelName in models) {
+
+            // No seed defined for model, try next
+            if (!this.seeds[modelName]) continue;
+
+            try {
+
+                // Check if file exists
+                const seedFile = join(this.seedsPath, this.seeds[modelName]);
+                if (!existsSync(seedFile)) continue;
+
+
+                // Read and check if ssed content is an array
+                const seedsData = JSON.parse(readFileSync(seedFile).toString('utf-8'));
+                if (!Array.isArray(seedsData) || !seedsData.length) continue;
+
+
+                // Create seeds
+                let createdSeeds = 0;
+
+                // Bulk Create for SQL models: All or Nothing
+                if (models[modelName].sequelize) createdSeeds = await models[modelName]
+                        .bulkCreate(seedsData, { logging: false })
+                        .then((result) => result.length)
+                        .catch(() => 0)
+
+                // Insert Many for Mongo models, All except duplicates
+                else if (models[modelName].base) createdSeeds = await models[modelName]
+                        .insertMany(seedsData, { ordered: false })
+                        .then((result) => result.length)
+                        .catch((error) => error.result.result.nInserted);
+
+                // Nothing, try next
+                else continue;
+
+                // Sumary of seeds
+                console.log(`[Seed:${this.dbName}/${modelName}] ${createdSeeds}/${seedsData.length} seeds created.`);
+
+            // General error occurred
+            } catch (error) {
+                console.log(`[Seed:${this.dbName}/${modelName}] Error: ${error.message}`);
+            }
+
+        }
+
+    }
+
+
+    /**
+     * Database URI
+     */
+    private get uri() {
+        return this.config.uri;
+    }
+
+
+    /**
+     * Database seeds
+     */
+    private get seeds() {
+        return this.config.seeds;
+    }
+
+
+    /**
+     * Database name
+     */
+    private get dbName() {
+        return this.config.dbName;
+    }
+
+
+    /**
+     * Database options
+     */
+    private get options() {
+        return this.config.options || {}
+    }
+
+
+    /**
+     * Path of seeds files for db
+     */
+    private get seedsPath() {
+        return `${APP_PATH}/seeds/${this.dbName}`;
+    }
+
+
+    /**
+     * Path of modal files for db
+     */
+    private get modelsPath() {
+        return `${APP_PATH}/models/${this.dbName}`;
+    }
+
+
+    /**
+     * Return the strategy method to connect, between mongoose or sequelize
+     */
+    private get connectionStrategy(): () => Promise<Sequelize | Mongoose> {
+        return this.uri.includes('mongodb') ? this.mongooseStrategy : this.sequelizeStrategy
+    }
+
 
 }

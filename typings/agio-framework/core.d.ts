@@ -1,18 +1,25 @@
 declare module '@agio/framework/core' {
 
+    type Controllers = import('@agio/framework/common').ControllerClass[];
+    type Handler = import('@agio/framework/common').Handler;
+
     interface AppOptions {
-        controllers?: import('@agio/framework/common').ControllerClass[],
+        controllers?: Controllers,
         handlers?: {
-            provide: import('@agio/framework/common').Handler | string,
-            use: import('@agio/framework/common').Handler,
+            provide: Handler | string,
+            use: Handler,
             at: 'before' | 'after'
         }[],
     }
 
     class App {
+
         options: AppOptions;
+
         constructor(options?: AppOptions);
-        start: () => Promise<string>
+
+        start: () => Promise<string>;
+
     }
 
 }
